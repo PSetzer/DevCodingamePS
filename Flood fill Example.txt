@@ -1,0 +1,161 @@
+using System;
+using System.Linq;
+using System.IO;
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+class Solution
+{
+    static int W;
+    static int H;
+    static Dictionary<Coord, string> dicCoordsValues;
+    
+    static void Main(string[] args)
+    {
+        W = int.Parse(Console.ReadLine());
+        H = int.Parse(Console.ReadLine());
+        
+        List<string> lstNotTower = new List<string>() {"#", "."};
+        
+        dicCoordsValues = new Dictionary<Coord, string>();
+        for (int i = 0; i < H; i++)
+        {
+            string line = Console.ReadLine();
+            for (int j = 0; j < W; j++)
+            {
+                SetValue(i, j, line[j].ToString());
+            }
+        }
+        
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                Console.Error.Write(GetValue(i, j));
+            }
+            Console.Error.WriteLine();
+        }
+        Console.Error.WriteLine();
+        
+        Dictionary<Coord, string> dicModifs = new Dictionary<Coord, string>();
+        
+        bool hasDouble = true;
+        while (hasDouble)
+        {
+            hasDouble = false;
+            dicModifs = new Dictionary<Coord, string>();
+            
+            foreach (var v in dicCoordsValues.Where(x => !lstNotTower.Contains(x.Value)))
+            {
+                if (dicCoordsValues.Where(x => !dicModifs.Any(y => x.Key.i == y.Key.i && x.Key.j == y.Key.j))
+                                   .Any(x => x.Value == v.Value && (x.Key.i != v.Key.i || x.Key.j != v.Key.j)))
+                {
+                    dicModifs[new Coord(v.Key.i, v.Key.j)] = v.Value + "1";
+                    hasDouble = true;
+                }
+            }
+            
+            foreach (var v in dicModifs)
+            {
+                Console.Error.WriteLine(v.Key.i + " " + v.Key.j + " " + v.Value);
+            }
+            
+            foreach (var v in dicModifs)
+            {
+                SetValue(v.Key.i, v.Key.j, v.Value);
+            }
+        }
+        
+        bool allonsy = true;
+        while(allonsy)
+        {
+            allonsy = false;
+            dicModifs = new Dictionary<Coord, string>();
+            
+            foreach (var v in dicCoordsValues.Where(x => !lstNotTower.Contains(x.Value)))
+            {
+                Dictionary<Coord, string> dicNearValues = GetNearValues(v.Key.i, v.Key.j);
+                foreach (var w in dicNearValues.Where(x => x.Value == "."))
+                {
+                    allonsy = true;
+                    if (v.Value == "+")
+                        dicModifs[new Coord(w.Key.i, w.Key.j)] = "+";
+                    else
+                    {
+                        Dictionary<Coord, string> dicNearValuesNearValue = GetNearValues(w.Key.i, w.Key.j);
+                        if (dicNearValuesNearValue.Any(x => !lstNotTower.Contains(x.Value) && x.Value != v.Value))
+                            dicModifs[new Coord(w.Key.i, w.Key.j)] = "+";
+                        else
+                            dicModifs[new Coord(w.Key.i, w.Key.j)] = v.Value;
+                    }
+                }
+            }
+            
+            foreach (var v in dicModifs)
+            {
+                SetValue(v.Key.i, v.Key.j, v.Value);
+            }
+        }
+        
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                Console.Write(GetValue(i, j).Substring(0, 1));
+            }
+            Console.WriteLine();
+        }
+    }
+    
+    static string GetValue(int i, int j)
+    {
+        if ((i >= 0 && i < H) && (j >= 0 && j < W))
+            return dicCoordsValues[new Coord(i, j)];
+        else
+            return "";
+    }
+    
+    static void SetValue(int i, int j, string value)
+    {
+        if ((i >= 0 && i < H) && (j >= 0 && j < W))
+            dicCoordsValues[new Coord(i, j)] = value;
+    }
+    
+    static List<Coord> GetNearCoords(int i, int j)
+    {
+        List<Coord> lstNearCoords = new List<Coord>();
+        lstNearCoords.Add(new Coord(i-1, j));
+        lstNearCoords.Add(new Coord(i, j+1));
+        lstNearCoords.Add(new Coord(i+1, j));
+        lstNearCoords.Add(new Coord(i, j-1));
+        return lstNearCoords;
+    }
+    
+    static Dictionary<Coord, string> GetNearValues(int i, int j)
+    {
+        Dictionary<Coord, string> dicNearValues = new Dictionary<Coord, string>();
+        List<Coord> lstNearCoords = GetNearCoords(i, j);
+        foreach (var v in lstNearCoords)
+        {
+            string value = GetValue(v.i, v.j);
+            if (value != "") dicNearValues[new Coord(v.i, v.j)] = value;
+        }
+        return dicNearValues;
+    }
+}
+
+public struct Coord
+{
+    public int i;
+    public int j;
+    public Coord(int pi, int pj)
+    {
+        i = pi;
+        j = pj;
+    }
+};

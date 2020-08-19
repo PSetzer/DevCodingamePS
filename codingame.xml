@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Racine>
+  <Textes>
+    <TextTB1>List&lt;int&gt; lst = new List&lt;int&gt;();</TextTB1>
+    <TextTB2>List&lt;string&gt; lst = new List&lt;string&gt;();</TextTB2>
+    <TextTB3>for (int i = 0; i &lt; n; i++)
+        {
+            
+        }</TextTB3>
+    <TextTB4>foreach (var v in )
+        {
+            
+        }</TextTB4>
+    <TextTB5>bool allonsy = true;
+        while(allonsy)
+        {
+            
+        }</TextTB5>
+    <TextTB6>int[] tab = new int[2];</TextTB6>
+    <TextTB7>Dictionary&lt;int, string&gt; dic = new Dictionary&lt;int, string&gt;();</TextTB7>
+    <TextTB8></TextTB8>
+    <TextTB9></TextTB9>
+    <TextTB10>Console.Error.WriteLine();</TextTB10>
+  </Textes>
+</Racine>

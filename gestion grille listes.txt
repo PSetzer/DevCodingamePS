@@ -1,0 +1,80 @@
+
+class Solution
+{
+    static int W;
+    static int H;
+    static List<List<string>> grid;
+    
+    static void Main(string[] args)
+    {
+        W = int.Parse(Console.ReadLine());
+        H = int.Parse(Console.ReadLine());
+        
+        grid = new List<List<string>>();
+        for (int i = 0; i < H; i++)
+        {
+            char[] inputs = Console.ReadLine().ToCharArray();
+            List<string> line = Array.ConvertAll(inputs, a => a.ToString()).ToList();
+            
+            grid.Add(line);
+        }
+        
+        foreach (var v in grid)
+        {
+            string line = "";
+            foreach (var w in v)
+            {
+                line += w;
+            }
+            Console.Error.WriteLine(line);
+        }
+        Console.Error.WriteLine();
+        
+		// traitement
+		
+        foreach (var v in grid)
+        {
+            string line = "";
+            foreach (var w in v)
+            {
+                line += w;
+            }
+            Console.WriteLine(line);
+        }
+    }
+    
+    static string GetValue(int i, int j)
+    {
+        if ((i >= 0 && i < H) && (j >= 0 && j < W))
+            return grid[i][j];
+        else
+            return "";
+    }
+    
+    static List<int[]> GetNearCoords(int i, int j)
+    {
+        List<int[]> lstNearCoords = new List<int[]>();
+        lstNearCoords.Add(new int[]{i-1, j});
+        lstNearCoords.Add(new int[]{i, j+1});
+        lstNearCoords.Add(new int[]{i+1, j});
+        lstNearCoords.Add(new int[]{i, j-1});
+		// diagonales
+		lstNearCoords.Add(new int[]{i-1, j+1});
+        lstNearCoords.Add(new int[]{i+1, j+1});
+        lstNearCoords.Add(new int[]{i+1, j-1});
+        lstNearCoords.Add(new int[]{i-1, j-1});
+        return lstNearCoords;
+    }
+    
+    static Dictionary<int[], string> GetNearValues(int i, int j)
+    {
+        Dictionary<int[], string> dicNearValues = new Dictionary<int[], string>();
+        List<int[]> lstNearCoords = GetNearCoords(i, j);
+        foreach (var v in lstNearCoords)
+        {
+            string value = GetValue(v[0], v[1]);
+            if (value != "") dicNearValues[new int[] {v[0], v[1]}] = value;
+        }
+        return dicNearValues;
+    }
+}

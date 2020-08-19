@@ -1,0 +1,8 @@
+7
+a e 3
+a c 18
+e d 2
+e b 10
+d b 1
+b c 4
+b a 8

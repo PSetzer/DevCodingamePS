@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Skynet_le_virus", "Skynet_le_virus\Skynet_le_virus.csproj", "{9F7C3D90-A81E-452E-ACC0-53F9F027D3BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Le Labyrinthe", "Le Labyrinthe\Le Labyrinthe.csproj", "{99C7A15B-2656-45B2-AF55-80D1BDD270F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "There_is_no_spoon_2", "There_is_no_spoon_2\There_is_no_spoon_2.csproj", "{6DBB904E-FEDF-4E5F-AFE8-BA03FF97ACB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{8FD4BF0F-52FE-45AA-AAD1-B0BD9A854C90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Code of Kutulu", "Code of Kutulu\Code of Kutulu.csproj", "{7F03B255-5E7A-4B1F-89EF-45D2847F8227}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "General", "General\General.csproj", "{3C8F739C-D88A-4F73-979E-8C7C4EA64706}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{582E46CC-ADE4-4DC5-86E7-2C57BB76AA62}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F7C3D90-A81E-452E-ACC0-53F9F027D3BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F7C3D90-A81E-452E-ACC0-53F9F027D3BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F7C3D90-A81E-452E-ACC0-53F9F027D3BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F7C3D90-A81E-452E-ACC0-53F9F027D3BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99C7A15B-2656-45B2-AF55-80D1BDD270F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99C7A15B-2656-45B2-AF55-80D1BDD270F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99C7A15B-2656-45B2-AF55-80D1BDD270F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99C7A15B-2656-45B2-AF55-80D1BDD270F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DBB904E-FEDF-4E5F-AFE8-BA03FF97ACB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DBB904E-FEDF-4E5F-AFE8-BA03FF97ACB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DBB904E-FEDF-4E5F-AFE8-BA03FF97ACB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DBB904E-FEDF-4E5F-AFE8-BA03FF97ACB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FD4BF0F-52FE-45AA-AAD1-B0BD9A854C90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FD4BF0F-52FE-45AA-AAD1-B0BD9A854C90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FD4BF0F-52FE-45AA-AAD1-B0BD9A854C90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FD4BF0F-52FE-45AA-AAD1-B0BD9A854C90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F03B255-5E7A-4B1F-89EF-45D2847F8227}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F03B255-5E7A-4B1F-89EF-45D2847F8227}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F03B255-5E7A-4B1F-89EF-45D2847F8227}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F03B255-5E7A-4B1F-89EF-45D2847F8227}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C8F739C-D88A-4F73-979E-8C7C4EA64706}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C8F739C-D88A-4F73-979E-8C7C4EA64706}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C8F739C-D88A-4F73-979E-8C7C4EA64706}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C8F739C-D88A-4F73-979E-8C7C4EA64706}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FB6D6A9A-6CDE-4CFC-B108-828A2DD41FA6}
+	EndGlobalSection
+EndGlobal

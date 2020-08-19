@@ -1,0 +1,91 @@
+
+class Solution
+{
+    static int W;
+    static int H;
+    static Dictionary<Coord, string> dicCoordsValues;
+    
+    static void Main(string[] args)
+    {
+        W = int.Parse(Console.ReadLine());
+        H = int.Parse(Console.ReadLine());
+        
+        dicCoordsValues = new Dictionary<Coord, string>();
+        for (int i = 0; i < H; i++)
+        {
+            string line = Console.ReadLine();
+            for (int j = 0; j < W; j++)
+            {
+                SetValue(i, j, line[j].ToString());
+            }
+        }
+        
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                Console.Error.Write(GetValue(i, j));
+            }
+            Console.Error.WriteLine();
+        }
+        Console.Error.WriteLine();
+		
+        // traitement
+        
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                Console.Write(GetValue(i, j));
+            }
+            Console.WriteLine();
+        }
+    }
+    
+    static string GetValue(int i, int j)
+    {
+        if ((i >= 0 && i < H) && (j >= 0 && j < W))
+            return dicCoordsValues[new Coord(i, j)];
+        else
+            return "";
+    }
+    
+    static void SetValue(int i, int j, string value)
+    {
+        if ((i >= 0 && i < H) && (j >= 0 && j < W))
+            dicCoordsValues[new Coord(i, j)] = value;
+    }
+    
+    static List<Coord> GetNearCoords(int i, int j)
+    {
+        List<Coord> lstNearCoords = new List<Coord>();
+        lstNearCoords.Add(new Coord(i-1, j));
+        lstNearCoords.Add(new Coord(i, j+1));
+        lstNearCoords.Add(new Coord(i+1, j));
+        lstNearCoords.Add(new Coord(i, j-1));
+        return lstNearCoords;
+    }
+    
+    static Dictionary<Coord, string> GetNearValues(int i, int j)
+    {
+        Dictionary<Coord, string> dicNearValues = new Dictionary<Coord, string>();
+        List<Coord> lstNearCoords = GetNearCoords(i, j);
+        foreach (var v in lstNearCoords)
+        {
+            string value = GetValue(v.i, v.j);
+            if (value != "") dicNearValues[new Coord(v.i, v.j)] = value;
+        }
+        return dicNearValues;
+    }
+}
+
+public struct Coord
+{
+    public int i;
+    public int j;
+    public Coord(int pi, int pj)
+    {
+        i = pi;
+        j = pj;
+    }
+};

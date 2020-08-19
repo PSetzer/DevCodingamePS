@@ -1,0 +1,87 @@
+static List<List<T>> ItemCombinations<T>(List<T> inputList, int minimumItems = 1, 
+                                                  int maximumItems = int.MaxValue)
+{
+	int nonEmptyCombinations = (int)Math.Pow(2, inputList.Count) - 1;
+	List<List<T>> listOfLists = new List<List<T>>();
+	
+	if (minimumItems == 0)  // Optimize default case
+		listOfLists.Add(new List<T>());
+	
+	for (int i = 1; i <= nonEmptyCombinations; i++)
+	{
+		List<T> thisCombination = new List<T>(inputList.Count);
+		for (int j = 0; j < inputList.Count; j++)
+		{
+		   if ((i >> j & 1) == 1)
+			  thisCombination.Add(inputList[j]);
+		}
+		
+		if (thisCombination.Count >= minimumItems && thisCombination.Count <= maximumItems)
+		   //listOfLists.AddRange(GetPermutations(thisCombination));
+		   listOfLists.Add(thisCombination);
+	}
+	
+	return listOfLists;
+}
+
+
+
+
+static List<List<T>> GetCombinations<T>(List<T> inputList)
+{
+	int nonEmptyCombinations = (int)Math.Pow(2, inputList.Count) - 1;
+	List<List<T>> listOfLists = new List<List<T>>();
+	
+	for (int i = 1; i <= nonEmptyCombinations; i++)
+	{
+		List<T> thisCombination = new List<T>(inputList.Count);
+		for (int j = 0; j < inputList.Count; j++)
+		{
+		   if ((i >> j & 1) == 1)
+			  thisCombination.Add(inputList[j]);
+		}
+		
+	    //listOfLists.AddRange(GetPermutations(thisCombination));
+	    listOfLists.Add(thisCombination);
+	}
+	
+	return listOfLists;
+}
+        
+static List<List<T>> GetPermutations<T>(List<T> list, int length)
+{
+	if (length == 1) return list.Select(t => new T[] { t }.ToList()).ToList();
+
+	return GetPermutations(list, length - 1)
+		.SelectMany(t => list.Where(e => !t.Contains(e)).ToList(),
+			(t1, t2) => t1.Concat(new T[] { t2 }.ToList()).ToList()).ToList();
+}
+
+static List<List<T>> GetPermutations<T>(List<T> list)
+{
+	return GetPermutations(list, list.Count());
+}
+
+
+// permutations si plusieurs éléments identiques
+static List<string> FindPermutations(string set)
+{
+	var output = new List<string>();
+	if (set.Length == 1)
+	{
+		output.Add(set);
+	}
+	else
+	{
+		foreach (var c in set)
+		{
+			// Remove one occurrence of the char (not all)
+			var tail = set.Remove(set.IndexOf(c), 1);
+			foreach (var tailPerms in FindPermutations(tail))
+			{
+				output.Add(c + tailPerms);
+			}
+		}
+	}
+	return output;
+}
