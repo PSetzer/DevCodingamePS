@@ -83,18 +83,18 @@ class Game
                 // phase d'invocation
                 List<Card> lstPlayable = meSimu.lstCardsInHand.Where(x => x.cost <= meSimu.mana).ToList();
                 IEnumerable<IEnumerable<Card>> lstCardSubsets = GetSubsets(lstPlayable)?.Where(x => x.Sum(y => y?.cost ?? 0) <= meSimu.mana)?.ToList() ?? new List<IEnumerable<Card>>();
-                IEnumerable<List<(int cardId, int targetId)>> lstAllPossiblePlays = GetAllPossiblePlays(meSimu, oppSimu, lstCardSubsets);
+                IEnumerable<List<(int cardId, int targetId)>> lstAllPossibleInvokes = GetAllPossibleInvokes(meSimu, oppSimu, lstCardSubsets);
 
                 List<string> lstActionsMC = new List<string>();
                 List<(string, double)> lstScoresOfActionsMC = new List<(string, double)>();
 
-                foreach (List<(int cardId, int targetId)> lstPossiblePlays in lstAllPossiblePlays)
+                foreach (List<(int cardId, int targetId)> lstPossibleInvokes in lstAllPossibleInvokes)
                 {
                     meSimu.ReinitWith(meInit);
                     oppSimu.ReinitWith(oppInit);
                     lstActionsMC = new List<string>();
 
-                    foreach ((int cardId, int targetId) cardTarget in lstPossiblePlays)
+                    foreach ((int cardId, int targetId) cardTarget in lstPossibleInvokes)
                     {
                         Card card = meSimu.lstCardsInHand.FirstOrDefault(x => x.id == cardTarget.cardId);
 
@@ -223,9 +223,9 @@ class Game
         lstActions.Add($"PICK {pick}");
     }
 
-    static IEnumerable<List<(int cardId, int targetId)>> GetAllPossiblePlays(Player me, Player opp, IEnumerable<IEnumerable<Card>> lstCardSubsets)
+    static IEnumerable<List<(int cardId, int targetId)>> GetAllPossibleInvokes(Player me, Player opp, IEnumerable<IEnumerable<Card>> lstCardSubsets)
     {
-        IEnumerable<List<(int cardId, int targetId)>> lstAllPossiblePlays = Enumerable.Empty<List<(int cardId, int targetId)>>();
+        IEnumerable<List<(int cardId, int targetId)>> lstAllPossibleInvokes = Enumerable.Empty<List<(int cardId, int targetId)>>();
 
         List<(int cardId, int targetId)> lstCardTarget = new List<(int cardId, int targetId)>();
         List<(int cardId, int targetId)> lstSummonsOfCardSubset = new List<(int cardId, int targetId)>();
@@ -269,12 +269,12 @@ class Game
             }
 
             if (lstLstCardTargetOfCardSubset.Count > 0)
-                lstAllPossiblePlays = lstAllPossiblePlays.Concat(GetListCombinations(lstLstCardTargetOfCardSubset, lstSummonsOfCardSubset));
+                lstAllPossibleInvokes = lstAllPossibleInvokes.Concat(GetListCombinations(lstLstCardTargetOfCardSubset, lstSummonsOfCardSubset));
             else
-                lstAllPossiblePlays = lstAllPossiblePlays.Concat(new List<List<(int cardId, int targetId)>> { lstSummonsOfCardSubset });
+                lstAllPossibleInvokes = lstAllPossibleInvokes.Concat(new List<List<(int cardId, int targetId)>> { lstSummonsOfCardSubset });
         }
 
-        return lstAllPossiblePlays;
+        return lstAllPossibleInvokes;
     }
 
     static void AttackPhase(Player me, Player opp, List<string> listActions = null)
