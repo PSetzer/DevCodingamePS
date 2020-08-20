@@ -123,8 +123,15 @@ class ProgramTestTESL
                         lstActionsMC.Add($"USE {card.id} {target.id}");
                         PlayCardOnBoard(card);
                         target.attack += card.attack;
-                        target.defense += card.defense;
                         target.abilities &= ~card.abilities;
+                        if (target.hasWard && card.defense < 0)
+                            target.abilities &= ~ab.ward;
+                        else
+                        {
+                            target.defense += card.defense;
+                            if (target.defense <= 0)
+                                oppSimu.lstCardsOnBoard.Remove(target);
+                        }
                         meSimu.health += card.myHealthChange;
                         oppSimu.health += card.oppHealthChange;
                         if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
