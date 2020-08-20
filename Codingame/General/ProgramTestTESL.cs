@@ -10,8 +10,8 @@ class ProgramTestTESL
     static bool isConsole = false;
     static System.IO.StreamReader file = isConsole ? null : new System.IO.StreamReader("../../input2.txt");
 
-    static Player me;
-    static Player opponent;
+    static Player meInit;
+    static Player oppInit;
     static List<string> lstActions;
     static List<Card> lstCardInDeck = new List<Card>();
 
@@ -25,79 +25,79 @@ class ProgramTestTESL
         //lstCardInDeck = new List<Card>();
 
         
-        Player meMC = new Player(me);
-        Player oppMC = new Player(opponent);
+        Player meSimu = new Player(meInit);
+        Player oppSimu = new Player(oppInit);
 
         // phase d'invocation
-        List<Card> lstPlayable = meMC.lstCardsInHand.Where(x => x.cost <= meMC.mana).ToList();
-        IEnumerable<IEnumerable<Card>> lstCardSubsets = GetSubsets(lstPlayable)?.Where(x => x.Sum(y => y?.cost ?? 0) <= meMC.mana)?.ToList() ?? new List<IEnumerable<Card>>();
-        IEnumerable<List<(int cardId, int targetId)>> lstAllPossiblePlays = GetAllPossiblePlays(meMC, oppMC, lstCardSubsets);
+        List<Card> lstPlayable = meSimu.lstCardsInHand.Where(x => x.cost <= meSimu.mana).ToList();
+        IEnumerable<IEnumerable<Card>> lstCardSubsets = GetSubsets(lstPlayable)?.Where(x => x.Sum(y => y?.cost ?? 0) <= meSimu.mana)?.ToList() ?? new List<IEnumerable<Card>>();
+        IEnumerable<List<(int cardId, int targetId)>> lstAllPossiblePlays = GetAllPossiblePlays(meSimu, oppSimu, lstCardSubsets);
 
         List<string> lstActionsMC = new List<string>();
         List<(string, double)> lstScoresOfActionsMC = new List<(string, double)>();
 
         foreach (List<(int cardId, int targetId)> lstPossiblePlays in lstAllPossiblePlays)
         {
-            meMC.ReinitWith(me);
-            oppMC.ReinitWith(opponent);
+            meSimu.ReinitWith(meInit);
+            oppSimu.ReinitWith(oppInit);
             lstActionsMC = new List<string>();
 
             foreach ((int cardId, int targetId) cardTarget in lstPossiblePlays)
             {
-                Card card = meMC.lstCardsInHand.FirstOrDefault(x => x.id == cardTarget.cardId);
+                Card card = meSimu.lstCardsInHand.FirstOrDefault(x => x.id == cardTarget.cardId);
 
                 if (card.type == 0)
                 {
                     lstActionsMC.Add($"SUMMON {card.id}");
                     card.wasJustSummoned = true;
-                    meMC.lstCardsOnBoard.Add(card.Clone() as Card);
+                    meSimu.lstCardsOnBoard.Add(card.Clone() as Card);
                     PlayCardOnBoard(card);
-                    meMC.health += card.myHealthChange;
-                    oppMC.health += card.opponentHealthChange;
-                    if (oppMC.health < oppMC.nbRunes) oppMC.nbRunes = oppMC.health;
+                    meSimu.health += card.myHealthChange;
+                    oppSimu.health += card.oppHealthChange;
+                    if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                 }
                 else if (card.type == 1)
                 {
-                    Card target = meMC.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
+                    Card target = meSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
                     lstActionsMC.Add($"USE {card.id} {target.id}");
                     PlayCardOnBoard(card);
                     target.attack += card.attack;
                     target.defense += card.defense;
                     target.abilities |= card.abilities;
-                    meMC.health += card.myHealthChange;
-                    oppMC.health += card.opponentHealthChange;
-                    if (oppMC.health < oppMC.nbRunes) oppMC.nbRunes = oppMC.health;
+                    meSimu.health += card.myHealthChange;
+                    oppSimu.health += card.oppHealthChange;
+                    if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                 }
                 else if (card.type > 1)
                 {
                     if (cardTarget.targetId > 0)
                     {
-                        Card target = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
+                        Card target = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
                         lstActionsMC.Add($"USE {card.id} {target.id}");
                         PlayCardOnBoard(card);
                         target.attack += card.attack;
                         target.defense += card.defense;
                         target.abilities &= ~card.abilities;
-                        meMC.health += card.myHealthChange;
-                        oppMC.health += card.opponentHealthChange;
-                        if (oppMC.health < oppMC.nbRunes) oppMC.nbRunes = oppMC.health;
+                        meSimu.health += card.myHealthChange;
+                        oppSimu.health += card.oppHealthChange;
+                        if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                     }
                     else
                     {
                         lstActionsMC.Add($"USE {card.id} -1");
-                        meMC.health += card.myHealthChange;
-                        oppMC.health += card.opponentHealthChange;
-                        oppMC.health += card.defense;
-                        if (oppMC.health < oppMC.nbRunes) oppMC.nbRunes = oppMC.health;
+                        meSimu.health += card.myHealthChange;
+                        oppSimu.health += card.oppHealthChange;
+                        oppSimu.health += card.defense;
+                        if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                     }
                 }
             }
 
             // phase d'attaque
-            AttackPhase(meMC, oppMC, lstActionsMC);
-            //AttackPhase(oppMC, meMC);
+            AttackPhase(meSimu, oppSimu, lstActionsMC);
+            //AttackPhase(oppSimu, meSimu);
             if (!lstActionsMC.Any()) lstActionsMC.Add("PASS");
-            lstScoresOfActionsMC.Add((string.Join(";", lstActionsMC), ScoreMC(meMC, oppMC)));
+            lstScoresOfActionsMC.Add((string.Join(";", lstActionsMC), ScoreMC(meSimu, oppSimu)));
         }
 
         if (lstScoresOfActionsMC.Any())
@@ -107,7 +107,7 @@ class ProgramTestTESL
         }
     }
 
-    static IEnumerable<List<(int cardId, int targetId)>> GetAllPossiblePlays(Player meMC, Player oppMC, IEnumerable<IEnumerable<Card>> lstCardSubsets)
+    static IEnumerable<List<(int cardId, int targetId)>> GetAllPossiblePlays(Player me, Player opp, IEnumerable<IEnumerable<Card>> lstCardSubsets)
     {
         IEnumerable<List<(int cardId, int targetId)>> lstAllPossiblePlays = Enumerable.Empty<List<(int cardId, int targetId)>>();
 
@@ -127,7 +127,7 @@ class ProgramTestTESL
             {
                 lstCardTarget = new List<(int cardId, int targetId)>();
 
-                foreach (var targetId in meMC.lstCardsOnBoard.Select(x => (x.id, 0)).Concat(lstSummonsOfCardSubset))
+                foreach (var targetId in me.lstCardsOnBoard.Select(x => (x.id, 0)).Concat(lstSummonsOfCardSubset))
                     lstCardTarget.Add((card.id, targetId.Item1));
 
                 if (lstCardTarget.Count > 0)
@@ -138,7 +138,7 @@ class ProgramTestTESL
             {
                 lstCardTarget = new List<(int cardId, int targetId)>();
 
-                foreach (Card target in oppMC.lstCardsOnBoard)
+                foreach (Card target in opp.lstCardsOnBoard)
                     lstCardTarget.Add((card.id, target.id));
 
                 if (lstCardTarget.Count > 0)
@@ -161,37 +161,37 @@ class ProgramTestTESL
         return lstAllPossiblePlays;
     }
 
-    static void AttackPhase(Player meMC, Player oppMC, List<string> listActions = null)
+    static void AttackPhase(Player me, Player opp, List<string> listActions = null)
     {
-        while (meMC.lstCardsOnBoard.Any(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge) && x.attack > 0))
+        while (me.lstCardsOnBoard.Any(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge) && x.attack > 0))
         {
-            List<Card> lstReadyCards = meMC.lstCardsOnBoard.Where(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge) && x.attack > 0).ToList();
+            List<Card> lstReadyCards = me.lstCardsOnBoard.Where(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge) && x.attack > 0).ToList();
 
             Card defender = null;
             Card attacking = null;
             Card readyLethal = lstReadyCards.FirstOrDefault(x => x.isLethal);
-            int maxOppDefense = oppMC.lstCardsOnBoard.Count > 0 ? oppMC.lstCardsOnBoard.Max(x => x.defense) : 0;
+            int maxOppDefense = opp.lstCardsOnBoard.Count > 0 ? opp.lstCardsOnBoard.Max(x => x.defense) : 0;
 
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.isGuard && x.defense == maxOppDefense && readyLethal != null);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.isGuard && x.defense == maxOppDefense && readyLethal != null);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.isGuard);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.isGuard);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.number == 14);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.number == 14);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.number == 20);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.number == 20);
             if (defender == null && maxOppDefense >= 4)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.defense == maxOppDefense && readyLethal != null);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.defense == maxOppDefense && readyLethal != null);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.number == 16);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.number == 16);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.number == 42);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.number == 42);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.number == 35);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.number == 35);
             if (defender == null && lstReadyCards.Any(y => y.defense >= 5))
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.isLethal);
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.isLethal);
             if (defender == null)
-                defender = oppMC.lstCardsOnBoard.FirstOrDefault(x => x.attack >= 5 && lstReadyCards.Any(y => x.defense <= y.attack));
+                defender = opp.lstCardsOnBoard.FirstOrDefault(x => x.attack >= 5 && lstReadyCards.Any(y => x.defense <= y.attack));
 
             if (defender != null)
             {
@@ -208,52 +208,52 @@ class ProgramTestTESL
 
                 if (attacking != null)
                 {
-                    AttackOpponentCard(attacking, defender, meMC, oppMC, listActions);
+                    AttackOpponentCard(attacking, defender, me, opp, listActions);
                 }
             }
             else
             {
                 if (attacking == null)
-                    attacking = meMC.lstCardsOnBoard.FirstOrDefault(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge));
+                    attacking = me.lstCardsOnBoard.FirstOrDefault(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge));
 
                 if (attacking != null)
                 {
                     listActions?.Add($"ATTACK {attacking.id} -1");
                     attacking.hasAttacked = true;
-                    oppMC.health -= attacking.attack;
-                    if (oppMC.health < oppMC.nbRunes) oppMC.nbRunes = oppMC.health;
+                    opp.health -= attacking.attack;
+                    if (opp.health < opp.nbRunes) opp.nbRunes = opp.health;
                 }
             }
         }
     }
 
-    static double ScoreMC(Player meMC, Player oppMC)
+    static double ScoreMC(Player meSimu, Player oppSimu)
     {
         double score = 0;
 
-        if (meMC.health <= 0) score = -10000;
-        else if (oppMC.health <= 0) score = 10000;
+        if (meSimu.health <= 0) score = -10000;
+        else if (oppSimu.health <= 0) score = 10000;
         else
         {
-            int diffMyAttack = meMC.lstCardsOnBoard.Sum(x => x.attack) - me.lstCardsOnBoard.Sum(x => x.attack);
-            int diffMyDefense = meMC.lstCardsOnBoard.Sum(x => x.defense) - me.lstCardsOnBoard.Sum(x => x.defense);
-            int diffOppAttack = opponent.lstCardsOnBoard.Sum(x => x.attack) - oppMC.lstCardsOnBoard.Sum(x => x.attack);
-            int diffOppDefense = opponent.lstCardsOnBoard.Sum(x => x.defense) - oppMC.lstCardsOnBoard.Sum(x => x.defense);
-            int diffMyHealth = meMC.health - me.health;
-            int diffOppHealth = opponent.health - oppMC.health;
+            int diffMyAttack = meSimu.lstCardsOnBoard.Sum(x => x.attack) - meInit.lstCardsOnBoard.Sum(x => x.attack);
+            int diffMyDefense = meSimu.lstCardsOnBoard.Sum(x => x.defense) - meInit.lstCardsOnBoard.Sum(x => x.defense);
+            int diffOppAttack = oppInit.lstCardsOnBoard.Sum(x => x.attack) - oppSimu.lstCardsOnBoard.Sum(x => x.attack);
+            int diffOppDefense = oppInit.lstCardsOnBoard.Sum(x => x.defense) - oppSimu.lstCardsOnBoard.Sum(x => x.defense);
+            int diffMyHealth = meSimu.health - meInit.health;
+            int diffOppHealth = oppInit.health - oppSimu.health;
 
-            int diffMyNbGuard = meMC.lstCardsOnBoard.Count(x => x.isGuard) - me.lstCardsOnBoard.Count(x => x.isGuard);
-            int diffOppNbGuard = opponent.lstCardsOnBoard.Count(x => x.isGuard) - oppMC.lstCardsOnBoard.Count(x => x.isGuard);
+            int diffMyNbGuard = meSimu.lstCardsOnBoard.Count(x => x.isGuard) - meInit.lstCardsOnBoard.Count(x => x.isGuard);
+            int diffOppNbGuard = oppInit.lstCardsOnBoard.Count(x => x.isGuard) - oppSimu.lstCardsOnBoard.Count(x => x.isGuard);
 
-            int diffMyNbLethal = meMC.lstCardsOnBoard.Count(x => x.isLethal) - me.lstCardsOnBoard.Count(x => x.isLethal);
-            int diffOppNbLethal = opponent.lstCardsOnBoard.Count(x => x.isLethal) - oppMC.lstCardsOnBoard.Count(x => x.isLethal);
+            int diffMyNbLethal = meSimu.lstCardsOnBoard.Count(x => x.isLethal) - meInit.lstCardsOnBoard.Count(x => x.isLethal);
+            int diffOppNbLethal = oppInit.lstCardsOnBoard.Count(x => x.isLethal) - oppSimu.lstCardsOnBoard.Count(x => x.isLethal);
 
-            int diffMyNbDrain = meMC.lstCardsOnBoard.Count(x => x.hasDrain) - me.lstCardsOnBoard.Count(x => x.hasDrain);
-            int diffOppNbDrain = opponent.lstCardsOnBoard.Count(x => x.hasDrain) - oppMC.lstCardsOnBoard.Count(x => x.hasDrain);
+            int diffMyNbDrain = meSimu.lstCardsOnBoard.Count(x => x.hasDrain) - meInit.lstCardsOnBoard.Count(x => x.hasDrain);
+            int diffOppNbDrain = oppInit.lstCardsOnBoard.Count(x => x.hasDrain) - oppSimu.lstCardsOnBoard.Count(x => x.hasDrain);
 
-            int diffMyNbWard = meMC.lstCardsOnBoard.Count(x => x.hasWard) - me.lstCardsOnBoard.Count(x => x.hasWard);
+            int diffMyNbWard = meSimu.lstCardsOnBoard.Count(x => x.hasWard) - meInit.lstCardsOnBoard.Count(x => x.hasWard);
 
-            bool hasOppLostRune = oppMC.nbRunes < opponent.nbRunes;
+            bool hasOppLostRune = oppSimu.nbRunes < oppInit.nbRunes;
 
             score += 50 * diffMyAttack;
             score += 50 * diffMyDefense;
@@ -280,44 +280,44 @@ class ProgramTestTESL
 
     static void PlayCardOnBoard(Card card)
     {
-        me.mana -= card.cost;
-        me.lstCardsInHand.Remove(card);
+        meInit.mana -= card.cost;
+        meInit.lstCardsInHand.Remove(card);
     }
 
-    static void AttackOpponentCard(Card myCreature, Card opponentCreature, Player me, Player opponent, List<string> listActions = null)
+    static void AttackOpponentCard(Card myCreature, Card oppCreature, Player me, Player opp, List<string> listActions = null)
     {
-        listActions?.Add($"ATTACK {myCreature.id} {opponentCreature.id}");
+        listActions?.Add($"ATTACK {myCreature.id} {oppCreature.id}");
         myCreature.hasAttacked = true;
 
         if (myCreature.hasWard)
             myCreature.abilities &= ~ab.ward;
         else
         {
-            myCreature.defense -= opponentCreature.attack;
-            if (opponentCreature.isLethal)
+            myCreature.defense -= oppCreature.attack;
+            if (oppCreature.isLethal)
                 me.lstCardsOnBoard.Remove(myCreature);
         }
         if (myCreature.defense <= 0)
             me.lstCardsOnBoard.Remove(myCreature);
 
-        if (opponentCreature.hasWard)
-            opponentCreature.abilities &= ~ab.ward;
+        if (oppCreature.hasWard)
+            oppCreature.abilities &= ~ab.ward;
         else
         {
-            opponentCreature.defense -= myCreature.attack;
+            oppCreature.defense -= myCreature.attack;
             if (myCreature.hasBreakthrough)
             {
-                opponent.health -= (myCreature.attack - opponentCreature.defense);
-                if (opponent.health < opponent.nbRunes) opponent.nbRunes = opponent.health;
+                opp.health -= (myCreature.attack - oppCreature.defense);
+                if (opp.health < opp.nbRunes) opp.nbRunes = opp.health;
 
             }
             if (myCreature.hasDrain)
                 me.health += myCreature.attack;
             if (myCreature.isLethal)
-                opponent.lstCardsOnBoard.Remove(opponentCreature);
+                opp.lstCardsOnBoard.Remove(oppCreature);
         }
-        if (opponentCreature.defense <= 0)
-            opponent.lstCardsOnBoard.Remove(opponentCreature);
+        if (oppCreature.defense <= 0)
+            opp.lstCardsOnBoard.Remove(oppCreature);
     }
 
     static void GetInput()
@@ -325,7 +325,7 @@ class ProgramTestTESL
         string[] inputs;
 
         inputs = ReadLine().Split(' ');
-        me = new Player()
+        meInit = new Player()
         {
             health = int.Parse(inputs[0]),
             mana = int.Parse(inputs[1]),
@@ -335,7 +335,7 @@ class ProgramTestTESL
         };
 
         inputs = ReadLine().Split(' ');
-        opponent = new Player()
+        oppInit = new Player()
         {
             health = int.Parse(inputs[0]),
             mana = int.Parse(inputs[1]),
@@ -345,14 +345,14 @@ class ProgramTestTESL
         };
 
         inputs = ReadLine().Split(' ');
-        opponent.nbCardInHand = int.Parse(inputs[0]);
+        oppInit.nbCardInHand = int.Parse(inputs[0]);
         int opponentActions = int.Parse(inputs[1]);
 
         for (int i = 0; i < opponentActions; i++)
         {
             inputs = ReadLine().Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
             int cardPlayedId = int.Parse(inputs[0]);
-            opponent.lstActions.Add(new Action()
+            oppInit.lstActions.Add(new Action()
             {
                 type = inputs[1],
                 cardId1 = inputs.Length >= 3 ? int.Parse(inputs[2]) : 0,
@@ -375,18 +375,18 @@ class ProgramTestTESL
                 defense = int.Parse(inputs[6]),
                 abilities = SetAbilities(inputs[7]),
                 myHealthChange = int.Parse(inputs[8]),
-                opponentHealthChange = int.Parse(inputs[9]),
+                oppHealthChange = int.Parse(inputs[9]),
                 cardDraw = int.Parse(inputs[10]),
                 wasJustSummoned = false,
                 hasAttacked = false
             };
 
             if (card.location == 0)
-                me.lstCardsInHand.Add(card);
+                meInit.lstCardsInHand.Add(card);
             else if (card.location == 1)
-                me.lstCardsOnBoard.Add(card);
+                meInit.lstCardsOnBoard.Add(card);
             else if (card.location == -1)
-                opponent.lstCardsOnBoard.Add(card);
+                oppInit.lstCardsOnBoard.Add(card);
         }
     }
 
