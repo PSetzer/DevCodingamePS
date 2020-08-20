@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 class ProgramTestTESL
 {
@@ -15,9 +13,58 @@ class ProgramTestTESL
     static List<string> lstActions;
     static List<Card> lstCardInDeck = new List<Card>();
 
-    static List<Point> grid;
+    static double ScoreMC(Player meSimu, Player oppSimu)
+    {
+        double score = 0;
 
-    static void MainTestTESL(string[] args)
+        if (meSimu.health <= 0) score = -10000;
+        else if (oppSimu.health <= 0) score = 10000;
+        else
+        {
+            int diffMyAttack = meSimu.lstCardsOnBoard.Sum(x => x.attack) - meInit.lstCardsOnBoard.Sum(x => x.attack);
+            int diffMyDefense = meSimu.lstCardsOnBoard.Sum(x => x.defense) - meInit.lstCardsOnBoard.Sum(x => x.defense);
+            int diffOppAttack = oppInit.lstCardsOnBoard.Sum(x => x.attack) - oppSimu.lstCardsOnBoard.Sum(x => x.attack);
+            int diffOppDefense = oppInit.lstCardsOnBoard.Sum(x => x.defense) - oppSimu.lstCardsOnBoard.Sum(x => x.defense);
+            int diffMyHealth = meSimu.health - meInit.health;
+            int diffOppHealth = oppInit.health - oppSimu.health;
+
+            int diffMyNbGuard = meSimu.lstCardsOnBoard.Count(x => x.isGuard) - meInit.lstCardsOnBoard.Count(x => x.isGuard);
+            int diffOppNbGuard = oppInit.lstCardsOnBoard.Count(x => x.isGuard) - oppSimu.lstCardsOnBoard.Count(x => x.isGuard);
+
+            int diffMyNbLethal = meSimu.lstCardsOnBoard.Count(x => x.isLethal) - meInit.lstCardsOnBoard.Count(x => x.isLethal);
+            int diffOppNbLethal = oppInit.lstCardsOnBoard.Count(x => x.isLethal) - oppSimu.lstCardsOnBoard.Count(x => x.isLethal);
+
+            int diffMyNbDrain = meSimu.lstCardsOnBoard.Count(x => x.hasDrain) - meInit.lstCardsOnBoard.Count(x => x.hasDrain);
+            int diffOppNbDrain = oppInit.lstCardsOnBoard.Count(x => x.hasDrain) - oppSimu.lstCardsOnBoard.Count(x => x.hasDrain);
+
+            int diffMyNbWard = meSimu.lstCardsOnBoard.Count(x => x.hasWard) - meInit.lstCardsOnBoard.Count(x => x.hasWard);
+
+            bool hasOppLostRune = oppSimu.nbRunes < oppInit.nbRunes;
+
+            score += 50 * diffMyAttack;
+            score += 50 * diffMyDefense;
+            score += 50 * diffOppAttack;
+            score += 50 * diffOppDefense;
+
+            score += 80 * diffMyNbGuard;
+            score += 50 * diffOppNbGuard;
+            score += 30 * diffMyNbLethal;
+            score += 30 * diffOppNbLethal;
+            score += 30 * diffMyNbDrain;
+            score += 30 * diffOppNbDrain;
+            score += 50 * diffMyNbWard;
+
+            score += 100 * diffMyHealth;
+            score += 150 * diffOppHealth;
+
+            /*if (hasOppLostRune)
+                score -= 150;*/
+        }
+
+        return score;
+    }
+
+    static void Main(string[] args)
     {
         GetInput();
 
@@ -225,57 +272,6 @@ class ProgramTestTESL
                 }
             }
         }
-    }
-
-    static double ScoreMC(Player meSimu, Player oppSimu)
-    {
-        double score = 0;
-
-        if (meSimu.health <= 0) score = -10000;
-        else if (oppSimu.health <= 0) score = 10000;
-        else
-        {
-            int diffMyAttack = meSimu.lstCardsOnBoard.Sum(x => x.attack) - meInit.lstCardsOnBoard.Sum(x => x.attack);
-            int diffMyDefense = meSimu.lstCardsOnBoard.Sum(x => x.defense) - meInit.lstCardsOnBoard.Sum(x => x.defense);
-            int diffOppAttack = oppInit.lstCardsOnBoard.Sum(x => x.attack) - oppSimu.lstCardsOnBoard.Sum(x => x.attack);
-            int diffOppDefense = oppInit.lstCardsOnBoard.Sum(x => x.defense) - oppSimu.lstCardsOnBoard.Sum(x => x.defense);
-            int diffMyHealth = meSimu.health - meInit.health;
-            int diffOppHealth = oppInit.health - oppSimu.health;
-
-            int diffMyNbGuard = meSimu.lstCardsOnBoard.Count(x => x.isGuard) - meInit.lstCardsOnBoard.Count(x => x.isGuard);
-            int diffOppNbGuard = oppInit.lstCardsOnBoard.Count(x => x.isGuard) - oppSimu.lstCardsOnBoard.Count(x => x.isGuard);
-
-            int diffMyNbLethal = meSimu.lstCardsOnBoard.Count(x => x.isLethal) - meInit.lstCardsOnBoard.Count(x => x.isLethal);
-            int diffOppNbLethal = oppInit.lstCardsOnBoard.Count(x => x.isLethal) - oppSimu.lstCardsOnBoard.Count(x => x.isLethal);
-
-            int diffMyNbDrain = meSimu.lstCardsOnBoard.Count(x => x.hasDrain) - meInit.lstCardsOnBoard.Count(x => x.hasDrain);
-            int diffOppNbDrain = oppInit.lstCardsOnBoard.Count(x => x.hasDrain) - oppSimu.lstCardsOnBoard.Count(x => x.hasDrain);
-
-            int diffMyNbWard = meSimu.lstCardsOnBoard.Count(x => x.hasWard) - meInit.lstCardsOnBoard.Count(x => x.hasWard);
-
-            bool hasOppLostRune = oppSimu.nbRunes < oppInit.nbRunes;
-
-            score += 50 * diffMyAttack;
-            score += 50 * diffMyDefense;
-            score += 50 * diffOppAttack;
-            score += 50 * diffOppDefense;
-
-            score += 80 * diffMyNbGuard;
-            score += 50 * diffOppNbGuard;
-            score += 30 * diffMyNbLethal;
-            score += 30 * diffOppNbLethal;
-            score += 30 * diffMyNbDrain;
-            score += 30 * diffOppNbDrain;
-            score += 50 * diffMyNbWard;
-
-            score += 100 * diffMyHealth;
-            score += 150 * diffOppHealth;
-
-            /*if (hasOppLostRune)
-                score -= 150;*/
-        }
-
-        return score;
     }
 
     static void PlayCardOnBoard(Card card)
