@@ -115,14 +115,10 @@ class ProgramTestTESL
         return score;
     }
 
-    static void MainTestTESL(string[] args)
+    static void Main(string[] args)
     {
         GetInput();
 
-        lstActions = new List<string>();
-        //lstCardInDeck = new List<Card>();
-
-        
         Player meSimu = new Player(meInit);
         Player oppSimu = new Player(oppInit);
 
@@ -201,8 +197,12 @@ class ProgramTestTESL
             lstScoresOfPossibleInvokes.Add((lstActionsInvoke, new Player(meSimu), new Player(oppSimu), ScoreInvokes(meSimu, oppSimu)));
         }
 
-        List<(List<string> actionsInvoke, Player meSimu, Player oppSimu)> lstBestInvokes =
-            lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).Select(x => (x.actionsInvoke, x.meSimu, x.oppSimu)).ToList();
+        List<(List<string> actionsInvoke, Player meSimu, Player oppSimu, double score)> lstBestInvokes;
+        if (lstScoresOfPossibleInvokes.Count > 0)
+            lstBestInvokes = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).ToList();
+        else
+            lstBestInvokes = new List<(List<string> actionsInvoke, Player meSimu, Player oppSimu, double score)> { (new List<string>(), new Player(meSimu), new Player(oppSimu), 0) };
+
 
         // phase d'attaque des gardes
         List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> lstScoresOfAttackGuards = new List<(List<string>, Player, Player, double)>();
@@ -211,7 +211,7 @@ class ProgramTestTESL
         foreach (var invokes in lstBestInvokes)
         {
             List<Card> lstGuards = new List<Card>(invokes.oppSimu.lstCardsOnBoard.Where(x => x.isGuard));
-            List<List<(int, int)>> lstAllPossibleAttackGuards = GetAllPossibleAttacks(invokes.meSimu.lstCardsOnBoard.Select(x => x.id), lstGuards.Select(x => x.id));
+            List<List<(int, int)>> lstAllPossibleAttackGuards = GetAllPossibleAttacks(invokes.meSimu.lstCardsOnBoard.Where(x => !x.hasAttacked && (!x.wasJustSummoned || x.hasCharge) && x.attack > 0).Select(x => x.id), lstGuards.Select(x => x.id));
 
             foreach (List<(int, int)> lstAttacks in lstAllPossibleAttackGuards)
             {
@@ -226,13 +226,17 @@ class ProgramTestTESL
                     AttackOpponentCard(attacker, defender, meSimu, oppSimu, lstActionsAttackGuards);
                 }
 
-                //if (!lstActionsAttackGuards.Any()) lstActionsAttackGuards.Add("PASS");
                 lstScoresOfAttackGuards.Add((invokes.actionsInvoke.Concat(lstActionsAttackGuards).ToList(), new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
             }
         }
 
-        List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu)> lstBestAttackGuards =
-            lstScoresOfAttackGuards.OrderByDescending(x => x.score).Take(3).Select(x => (x.actionsAttackGuard, x.meSimu, x.oppSimu)).ToList();
+        List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> lstBestAttackGuards;
+        if (lstScoresOfAttackGuards.Count > 0)
+            lstBestAttackGuards = lstScoresOfAttackGuards.OrderByDescending(x => x.score).Take(3).ToList();
+        else if (lstScoresOfPossibleInvokes.Count > 0)
+            lstBestAttackGuards = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).ToList();
+        else
+            lstBestAttackGuards = new List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> { (new List<string>(), new Player(meSimu), new Player(oppSimu), 0) };
 
         // phase d'attaque des non gardes
         List<(List<string> actionsAttackNonGuards, Player meSimu, Player oppSimu, double score)> lstScoresOfAttackNonGuards = new List<(List<string>, Player, Player, double)>();
@@ -244,7 +248,7 @@ class ProgramTestTESL
             {
                 List<Card> lstNotGuards = new List<Card>(attackGuards.oppSimu.lstCardsOnBoard);
                 lstNotGuards.Add(new Card() { id = -1, defense = attackGuards.oppSimu.health });
-                List<List<(int, int)>> lstAllPossibleAttackNonGuards = GetAllPossibleAttacks(attackGuards.meSimu.lstCardsOnBoard.Select(x => x.id), lstNotGuards.Select(x => x.id));
+                List<List<(int, int)>> lstAllPossibleAttackNonGuards = GetAllPossibleAttacks(attackGuards.meSimu.lstCardsOnBoard.Where(x => !x.hasAttacked && (!x.wasJustSummoned || x.hasCharge) && x.attack > 0).Select(x => x.id), lstNotGuards.Select(x => x.id));
 
                 foreach (List<(int, int)> lstAttacks in lstAllPossibleAttackNonGuards)
                 {
@@ -259,19 +263,22 @@ class ProgramTestTESL
                         AttackOpponentCard(attacker, defender, meSimu, oppSimu, lstActionsAttackNonGuards);
                     }
 
-                    //if (!lstActionsAttackNonGuards.Any()) lstActionsAttackNonGuards.Add("PASS");
                     lstScoresOfAttackNonGuards.Add((attackGuards.actionsAttackGuard.Concat(lstActionsAttackNonGuards).ToList(), new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
                 }
             }
-            else
-                lstScoresOfAttackNonGuards.Add((attackGuards.actionsAttackGuard, new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
         }
 
-        if (lstScoresOfAttackNonGuards.Any())
-        {
-            double maxScore = lstScoresOfAttackNonGuards.Max(x => x.score);
-            lstActions = lstScoresOfAttackNonGuards.FirstOrDefault(x => x.score == maxScore).actionsAttackNonGuards;
-        }
+        // choix de la liste d'actions
+        lstActions = new List<string>();
+
+        if (lstScoresOfAttackNonGuards.Count > 0)
+            lstActions = lstScoresOfAttackNonGuards.OrderByDescending(x => x.score).FirstOrDefault().actionsAttackNonGuards;
+        else if (lstScoresOfAttackGuards.Count > 0)
+            lstActions = lstScoresOfAttackGuards.OrderByDescending(x => x.score).FirstOrDefault().actionsAttackGuard;
+        else if (lstScoresOfPossibleInvokes.Count > 0)
+            lstActions = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).FirstOrDefault().actionsInvoke;
+        else
+            lstActions = new List<string>() { "PASS" };
     }
 
     static IEnumerable<List<(int cardId, int targetId)>> GetAllPossibleInvokes(Player me, Player opp, IEnumerable<IEnumerable<Card>> lstCardSubsets)
@@ -330,21 +337,26 @@ class ProgramTestTESL
 
     static List<List<(int, int)>> GetAllPossibleAttacks(IEnumerable<int> lstAttackers, IEnumerable<int> lstDefenders)
     {
-        List<List<(int, int)>> lstFinal = new List<List<(int, int)>> { new List<(int, int)>() };
-        List<List<(int, int)>> lstInit;
-
-        foreach (var attacker in lstAttackers)
+        if (lstAttackers.Any())
         {
-            lstInit = new List<List<(int, int)>>(lstFinal);
-            lstFinal.Clear();
+            List<List<(int, int)>> lstFinal = new List<List<(int, int)>> { new List<(int, int)>() };
+            List<List<(int, int)>> lstInit;
 
-            foreach (var defender in lstDefenders)
+            foreach (var attacker in lstAttackers)
             {
-                lstFinal.AddRange(GetPermutationAttacks((attacker, defender), lstInit));
-            }
-        }
+                lstInit = new List<List<(int, int)>>(lstFinal);
+                lstFinal.Clear();
 
-        return lstFinal;
+                foreach (var defender in lstDefenders)
+                {
+                    lstFinal.AddRange(GetPermutationAttacks((attacker, defender), lstInit));
+                }
+            }
+
+            return lstFinal;
+        }
+        else
+            return new List<List<(int, int)>>();
     }
 
     static List<List<(int, int)>> GetPermutationAttacks((int, int) attackToAdd, List<List<(int, int)>> lstInit)
@@ -439,7 +451,7 @@ class ProgramTestTESL
 
     static void AttackOpponentCard(Card myCreature, Card oppCreature, Player me, Player opp, List<string> listActions = null)
     {
-        if (oppCreature.defense > 0)
+        if (oppCreature != null && oppCreature.defense > 0)
         {
             listActions?.Add($"ATTACK {myCreature.id} {oppCreature.id}");
             myCreature.hasAttacked = true;
@@ -572,15 +584,18 @@ class ProgramTestTESL
     {
         List<List<T>> lstSubsets = new List<List<T>>();
 
-        int combinations = 1 << source.Count;
-        for (int i = 0; i < combinations; i++)
+        if (source.Count > 0)
         {
-            List<T> subSet = new List<T>();
+            int combinations = 1 << source.Count;
+            for (int i = 0; i < combinations; i++)
+            {
+                List<T> subSet = new List<T>();
 
-            for (int j = 0; j < source.Count; j++)
-                if ((i & (1 << j)) != 0) subSet.Add(source[j]);
+                for (int j = 0; j < source.Count; j++)
+                    if ((i & (1 << j)) != 0) subSet.Add(source[j]);
 
-            lstSubsets.Add(subSet);
+                lstSubsets.Add(subSet);
+            }
         }
 
         return lstSubsets;

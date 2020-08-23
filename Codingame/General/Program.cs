@@ -13,7 +13,7 @@ class Program
     static Player meInit;
     static Player oppInit;
 
-    static void Main(string[] args)
+    static void MainProgram(string[] args)
     {
         GetInput();
         List<List<(int, int)>> lstInit = GetAllPossibleAttacks(meInit.lstCardsOnBoard.Select(x => x.id).ToList(), oppInit.lstCardsOnBoard.Select(x => x.id).ToList());
