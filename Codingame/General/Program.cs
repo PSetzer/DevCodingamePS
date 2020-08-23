@@ -56,22 +56,6 @@ class Program
         return lstFinal;
     }
 
-    /*static IEnumerable<IEnumerable<T>> GetPermutations<T>(IList<T> list)
-    {
-        List<IEnumerable<T>> res = new List<IEnumerable<T>>();
-        for (int i = 0; i < list.Count; i++)
-        {
-            T elem = list[i];
-            list.Remove(elem);
-            for (int j = 0; j <= list.Count; j++)
-            {
-                list.Insert(j, elem);
-                res.Add(list);
-            }
-        }
-        return res.Distinct();
-    }*/
-
     static void GetInput()
     {
         string[] inputs;
