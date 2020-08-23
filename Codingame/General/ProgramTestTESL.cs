@@ -13,7 +13,7 @@ class ProgramTestTESL
     static List<string> lstActions;
     static List<Card> lstCardInDeck = new List<Card>();
 
-    static double ScoreMC(Player meSimu, Player oppSimu)
+    static double ScoreInvokes(Player meSimu, Player oppSimu)
     {
         double score = 0;
 
@@ -64,7 +64,58 @@ class ProgramTestTESL
         return score;
     }
 
-    static void Main(string[] args)
+    static double ScoreAttacks(Player meSimu, Player oppSimu)
+    {
+        double score = 0;
+
+        if (meSimu.health <= 0) score = -10000;
+        else if (oppSimu.health <= 0) score = 10000;
+        else
+        {
+            int diffMyAttack = meSimu.lstCardsOnBoard.Sum(x => x.attack) - meInit.lstCardsOnBoard.Sum(x => x.attack);
+            int diffMyDefense = meSimu.lstCardsOnBoard.Sum(x => x.defense) - meInit.lstCardsOnBoard.Sum(x => x.defense);
+            int diffOppAttack = oppInit.lstCardsOnBoard.Sum(x => x.attack) - oppSimu.lstCardsOnBoard.Sum(x => x.attack);
+            int diffOppDefense = oppInit.lstCardsOnBoard.Sum(x => x.defense) - oppSimu.lstCardsOnBoard.Sum(x => x.defense);
+            int diffMyHealth = meSimu.health - meInit.health;
+            int diffOppHealth = oppInit.health - oppSimu.health;
+
+            int diffMyNbGuard = meSimu.lstCardsOnBoard.Count(x => x.isGuard) - meInit.lstCardsOnBoard.Count(x => x.isGuard);
+            int diffOppNbGuard = oppInit.lstCardsOnBoard.Count(x => x.isGuard) - oppSimu.lstCardsOnBoard.Count(x => x.isGuard);
+
+            int diffMyNbLethal = meSimu.lstCardsOnBoard.Count(x => x.isLethal) - meInit.lstCardsOnBoard.Count(x => x.isLethal);
+            int diffOppNbLethal = oppInit.lstCardsOnBoard.Count(x => x.isLethal) - oppSimu.lstCardsOnBoard.Count(x => x.isLethal);
+
+            int diffMyNbDrain = meSimu.lstCardsOnBoard.Count(x => x.hasDrain) - meInit.lstCardsOnBoard.Count(x => x.hasDrain);
+            int diffOppNbDrain = oppInit.lstCardsOnBoard.Count(x => x.hasDrain) - oppSimu.lstCardsOnBoard.Count(x => x.hasDrain);
+
+            int diffMyNbWard = meSimu.lstCardsOnBoard.Count(x => x.hasWard) - meInit.lstCardsOnBoard.Count(x => x.hasWard);
+
+            bool hasOppLostRune = oppSimu.nbRunes < oppInit.nbRunes;
+
+            score += 50 * diffMyAttack;
+            score += 50 * diffMyDefense;
+            score += 50 * diffOppAttack;
+            score += 50 * diffOppDefense;
+
+            score += 80 * diffMyNbGuard;
+            score += 50 * diffOppNbGuard;
+            score += 30 * diffMyNbLethal;
+            score += 30 * diffOppNbLethal;
+            score += 30 * diffMyNbDrain;
+            score += 30 * diffOppNbDrain;
+            score += 50 * diffMyNbWard;
+
+            score += 100 * diffMyHealth;
+            score += 150 * diffOppHealth;
+
+            /*if (hasOppLostRune)
+                score -= 150;*/
+        }
+
+        return score;
+    }
+
+    static void MainTestTESL(string[] args)
     {
         GetInput();
 
@@ -80,14 +131,14 @@ class ProgramTestTESL
         IEnumerable<IEnumerable<Card>> lstCardSubsets = GetSubsets(lstPlayable)?.Where(x => x.Sum(y => y?.cost ?? 0) <= meSimu.mana)?.ToList() ?? new List<IEnumerable<Card>>();
         IEnumerable<List<(int cardId, int targetId)>> lstAllPossibleInvokes = GetAllPossibleInvokes(meSimu, oppSimu, lstCardSubsets);
 
-        List<string> lstActionsMC = new List<string>();
-        List<(string, double)> lstScoresOfActionsMC = new List<(string, double)>();
+        List<string> lstActionsInvoke = new List<string>();
+        List<(List<string> actionsInvoke, Player meSimu, Player oppSimu, double score)> lstScoresOfPossibleInvokes = new List<(List<string>, Player, Player, double)>();
 
         foreach (List<(int cardId, int targetId)> lstPossibleInvokes in lstAllPossibleInvokes)
         {
             meSimu.ReinitWith(meInit);
             oppSimu.ReinitWith(oppInit);
-            lstActionsMC = new List<string>();
+            lstActionsInvoke = new List<string>();
 
             foreach ((int cardId, int targetId) cardTarget in lstPossibleInvokes)
             {
@@ -95,7 +146,7 @@ class ProgramTestTESL
 
                 if (card.type == 0)
                 {
-                    lstActionsMC.Add($"SUMMON {card.id}");
+                    lstActionsInvoke.Add($"SUMMON {card.id}");
                     card.wasJustSummoned = true;
                     meSimu.lstCardsOnBoard.Add(card.Clone() as Card);
                     PlayCardOnBoard(card);
@@ -106,7 +157,7 @@ class ProgramTestTESL
                 else if (card.type == 1)
                 {
                     Card target = meSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
-                    lstActionsMC.Add($"USE {card.id} {target.id}");
+                    lstActionsInvoke.Add($"USE {card.id} {target.id}");
                     PlayCardOnBoard(card);
                     target.attack += card.attack;
                     target.defense += card.defense;
@@ -120,7 +171,7 @@ class ProgramTestTESL
                     if (cardTarget.targetId > 0)
                     {
                         Card target = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
-                        lstActionsMC.Add($"USE {card.id} {target.id}");
+                        lstActionsInvoke.Add($"USE {card.id} {target.id}");
                         PlayCardOnBoard(card);
                         target.attack += card.attack;
                         target.abilities &= ~card.abilities;
@@ -138,7 +189,7 @@ class ProgramTestTESL
                     }
                     else
                     {
-                        lstActionsMC.Add($"USE {card.id} -1");
+                        lstActionsInvoke.Add($"USE {card.id} -1");
                         meSimu.health += card.myHealthChange;
                         oppSimu.health += card.oppHealthChange;
                         oppSimu.health += card.defense;
@@ -147,19 +198,79 @@ class ProgramTestTESL
                 }
             }
 
-            // phase d'attaque
-            AttackPhase(meSimu, oppSimu, lstActionsMC);
-            //AttackPhase(oppSimu, meSimu);
-            if (!lstActionsMC.Any()) lstActionsMC.Add("PASS");
-            lstScoresOfActionsMC.Add((string.Join(";", lstActionsMC), ScoreMC(meSimu, oppSimu)));
+            lstScoresOfPossibleInvokes.Add((lstActionsInvoke, new Player(meSimu), new Player(oppSimu), ScoreInvokes(meSimu, oppSimu)));
         }
 
+        List<(List<string> actionsInvoke, Player meSimu, Player oppSimu)> lstBestInvokes =
+            lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).Select(x => (x.actionsInvoke, x.meSimu, x.oppSimu)).ToList();
 
+        // phase d'attaque des gardes
+        List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> lstScoresOfAttackGuards = new List<(List<string>, Player, Player, double)>();
+        List<string> lstActionsAttackGuards = new List<string>();
 
-        if (lstScoresOfActionsMC.Any())
+        foreach (var invokes in lstBestInvokes)
         {
-            double maxScore = lstScoresOfActionsMC.Max(x => x.Item2);
-            lstActions.Add(lstScoresOfActionsMC.FirstOrDefault(x => x.Item2 == maxScore).Item1);
+            List<Card> lstGuards = new List<Card>(invokes.oppSimu.lstCardsOnBoard.Where(x => x.isGuard));
+            List<List<(int, int)>> lstAllPossibleAttackGuards = GetAllPossibleAttacks(invokes.meSimu.lstCardsOnBoard.Select(x => x.id), lstGuards.Select(x => x.id));
+
+            foreach (List<(int, int)> lstAttacks in lstAllPossibleAttackGuards)
+            {
+                meSimu.ReinitWith(invokes.meSimu);
+                oppSimu.ReinitWith(invokes.oppSimu);
+                lstActionsAttackGuards = new List<string>();
+
+                foreach ((int idAtt, int idDef) attack in lstAttacks)
+                {
+                    Card attacker = meSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idAtt);
+                    Card defender = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idDef);
+                    AttackOpponentCard(attacker, defender, meSimu, oppSimu, lstActionsAttackGuards);
+                }
+
+                //if (!lstActionsAttackGuards.Any()) lstActionsAttackGuards.Add("PASS");
+                lstScoresOfAttackGuards.Add((invokes.actionsInvoke.Concat(lstActionsAttackGuards).ToList(), new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
+            }
+        }
+
+        List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu)> lstBestAttackGuards =
+            lstScoresOfAttackGuards.OrderByDescending(x => x.score).Take(3).Select(x => (x.actionsAttackGuard, x.meSimu, x.oppSimu)).ToList();
+
+        // phase d'attaque des non gardes
+        List<(List<string> actionsAttackNonGuards, Player meSimu, Player oppSimu, double score)> lstScoresOfAttackNonGuards = new List<(List<string>, Player, Player, double)>();
+        List<string> lstActionsAttackNonGuards = new List<string>();
+
+        foreach (var attackGuards in lstBestAttackGuards)
+        {
+            if (attackGuards.oppSimu.lstCardsOnBoard.All(x => !x.isGuard))
+            {
+                List<Card> lstNotGuards = new List<Card>(attackGuards.oppSimu.lstCardsOnBoard);
+                lstNotGuards.Add(new Card() { id = -1, defense = attackGuards.oppSimu.health });
+                List<List<(int, int)>> lstAllPossibleAttackNonGuards = GetAllPossibleAttacks(attackGuards.meSimu.lstCardsOnBoard.Select(x => x.id), lstNotGuards.Select(x => x.id));
+
+                foreach (List<(int, int)> lstAttacks in lstAllPossibleAttackNonGuards)
+                {
+                    meSimu.ReinitWith(attackGuards.meSimu);
+                    oppSimu.ReinitWith(attackGuards.oppSimu);
+                    lstActionsAttackNonGuards = new List<string>();
+
+                    foreach ((int idAtt, int idDef) attack in lstAttacks)
+                    {
+                        Card attacker = meSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idAtt);
+                        Card defender = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idDef);
+                        AttackOpponentCard(attacker, defender, meSimu, oppSimu, lstActionsAttackNonGuards);
+                    }
+
+                    //if (!lstActionsAttackNonGuards.Any()) lstActionsAttackNonGuards.Add("PASS");
+                    lstScoresOfAttackNonGuards.Add((attackGuards.actionsAttackGuard.Concat(lstActionsAttackNonGuards).ToList(), new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
+                }
+            }
+            else
+                lstScoresOfAttackNonGuards.Add((attackGuards.actionsAttackGuard, new Player(meSimu), new Player(oppSimu), ScoreAttacks(meSimu, oppSimu)));
+        }
+
+        if (lstScoresOfAttackNonGuards.Any())
+        {
+            double maxScore = lstScoresOfAttackNonGuards.Max(x => x.score);
+            lstActions = lstScoresOfAttackNonGuards.FirstOrDefault(x => x.score == maxScore).actionsAttackNonGuards;
         }
     }
 
@@ -217,7 +328,44 @@ class ProgramTestTESL
         return lstAllPossibleInvokes;
     }
 
-    static void AttackPhase(Player me, Player opp, List<string> listActions = null)
+    static List<List<(int, int)>> GetAllPossibleAttacks(IEnumerable<int> lstAttackers, IEnumerable<int> lstDefenders)
+    {
+        List<List<(int, int)>> lstFinal = new List<List<(int, int)>> { new List<(int, int)>() };
+        List<List<(int, int)>> lstInit;
+
+        foreach (var attacker in lstAttackers)
+        {
+            lstInit = new List<List<(int, int)>>(lstFinal);
+            lstFinal.Clear();
+
+            foreach (var defender in lstDefenders)
+            {
+                lstFinal.AddRange(GetPermutationAttacks((attacker, defender), lstInit));
+            }
+        }
+
+        return lstFinal;
+    }
+
+    static List<List<(int, int)>> GetPermutationAttacks((int, int) attackToAdd, List<List<(int, int)>> lstInit)
+    {
+        List<List<(int, int)>> lstFinal = new List<List<(int, int)>>();
+        List<(int, int)> lstToInsert;
+
+        foreach (var lst in lstInit)
+        {
+            for (int i = 0; i <= lst.Count; i++)
+            {
+                lstToInsert = new List<(int, int)>(lst);
+                lstToInsert.Insert(i, attackToAdd);
+                lstFinal.Add(lstToInsert);
+            }
+        }
+
+        return lstFinal;
+    }
+
+    /*static void AttackPhase(Player me, Player opp, List<string> listActions = null)
     {
         while (me.lstCardsOnBoard.Any(x => !x.hasAttacked && !(x.wasJustSummoned && !x.hasCharge) && x.attack > 0))
         {
@@ -281,7 +429,7 @@ class ProgramTestTESL
                 }
             }
         }
-    }
+    }*/
 
     static void PlayCardOnBoard(Card card)
     {
@@ -291,38 +439,49 @@ class ProgramTestTESL
 
     static void AttackOpponentCard(Card myCreature, Card oppCreature, Player me, Player opp, List<string> listActions = null)
     {
-        listActions?.Add($"ATTACK {myCreature.id} {oppCreature.id}");
-        myCreature.hasAttacked = true;
-
-        if (myCreature.hasWard)
-            myCreature.abilities &= ~ab.ward;
-        else
+        if (oppCreature.defense > 0)
         {
-            myCreature.defense -= oppCreature.attack;
-            if (oppCreature.isLethal)
-                me.lstCardsOnBoard.Remove(myCreature);
-        }
-        if (myCreature.defense <= 0)
-            me.lstCardsOnBoard.Remove(myCreature);
+            listActions?.Add($"ATTACK {myCreature.id} {oppCreature.id}");
+            myCreature.hasAttacked = true;
 
-        if (oppCreature.hasWard)
-            oppCreature.abilities &= ~ab.ward;
-        else
-        {
-            oppCreature.defense -= myCreature.attack;
-            if (myCreature.hasBreakthrough)
+            if (myCreature.hasWard && oppCreature.attack > 0)
+                myCreature.abilities &= ~ab.ward;
+            else
             {
-                opp.health -= (myCreature.attack - oppCreature.defense);
-                if (opp.health < opp.nbRunes) opp.nbRunes = opp.health;
-
+                myCreature.defense -= oppCreature.attack;
+                if (oppCreature.isLethal)
+                    me.lstCardsOnBoard.Remove(myCreature);
             }
-            if (myCreature.hasDrain)
-                me.health += myCreature.attack;
-            if (myCreature.isLethal)
-                opp.lstCardsOnBoard.Remove(oppCreature);
+            if (myCreature.defense <= 0)
+                me.lstCardsOnBoard.Remove(myCreature);
+
+            if (oppCreature.id == -1)
+            {
+                opp.health -= myCreature.attack;
+                if (opp.health < opp.nbRunes) opp.nbRunes = opp.health;
+            }
+            else
+            {
+                if (oppCreature.hasWard && myCreature.attack > 0)
+                    oppCreature.abilities &= ~ab.ward;
+                else
+                {
+                    oppCreature.defense -= myCreature.attack;
+                    if (myCreature.hasBreakthrough)
+                    {
+                        opp.health -= (myCreature.attack - oppCreature.defense);
+                        if (opp.health < opp.nbRunes) opp.nbRunes = opp.health;
+
+                    }
+                    if (myCreature.hasDrain)
+                        me.health += myCreature.attack;
+                    if (myCreature.isLethal)
+                        opp.lstCardsOnBoard.Remove(oppCreature);
+                }
+                if (oppCreature.defense <= 0)
+                    opp.lstCardsOnBoard.Remove(oppCreature);
+            }
         }
-        if (oppCreature.defense <= 0)
-            opp.lstCardsOnBoard.Remove(oppCreature);
     }
 
     static void GetInput()
@@ -467,6 +626,14 @@ class ProgramTestTESL
         }
 
         return lstLstPossiblePlaysOfCardSubset;
+    }
+
+    static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
+    {
+        if (length == 1)
+            return list.Select(t => new T[] { t });
+        else
+            return GetPermutations(list, length - 1).SelectMany(t => list.Where(e => !t.Contains(e)), (t1, t2) => t1.Concat(new T[] { t2 }));
     }
 
     static void PrintLine(object toPrint, string title = "")
