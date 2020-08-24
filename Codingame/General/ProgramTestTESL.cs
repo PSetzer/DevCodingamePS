@@ -167,21 +167,24 @@ class ProgramTestTESL
                     if (cardTarget.targetId > 0)
                     {
                         Card target = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == cardTarget.targetId);
-                        lstActionsInvoke.Add($"USE {card.id} {target.id}");
-                        PlayCardOnBoard(card);
-                        target.attack += card.attack;
-                        target.abilities &= ~card.abilities;
-                        if (target.hasWard && card.defense < 0)
-                            target.abilities &= ~ab.ward;
-                        else
+                        if (target != null)
                         {
-                            target.defense += card.defense;
-                            if (target.defense <= 0)
-                                oppSimu.lstCardsOnBoard.Remove(target);
+                            lstActionsInvoke.Add($"USE {card.id} {target.id}");
+                            PlayCardOnBoard(card);
+                            target.attack += card.attack;
+                            target.abilities &= ~card.abilities;
+                            if (target.hasWard && card.defense < 0)
+                                target.abilities &= ~ab.ward;
+                            else
+                            {
+                                target.defense += card.defense;
+                                if (target.defense <= 0)
+                                    oppSimu.lstCardsOnBoard.Remove(target);
+                            }
+                            meSimu.health += card.myHealthChange;
+                            oppSimu.health += card.oppHealthChange;
+                            if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                         }
-                        meSimu.health += card.myHealthChange;
-                        oppSimu.health += card.oppHealthChange;
-                        if (oppSimu.health < oppSimu.nbRunes) oppSimu.nbRunes = oppSimu.health;
                     }
                     else
                     {
@@ -199,7 +202,7 @@ class ProgramTestTESL
 
         List<(List<string> actionsInvoke, Player meSimu, Player oppSimu, double score)> lstBestInvokes;
         if (lstScoresOfPossibleInvokes.Count > 0)
-            lstBestInvokes = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).ToList();
+            lstBestInvokes = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(1).ToList();
         else
             lstBestInvokes = new List<(List<string> actionsInvoke, Player meSimu, Player oppSimu, double score)> { (new List<string>(), new Player(meSimu), new Player(oppSimu), 0) };
 
@@ -232,9 +235,9 @@ class ProgramTestTESL
 
         List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> lstBestAttackGuards;
         if (lstScoresOfAttackGuards.Count > 0)
-            lstBestAttackGuards = lstScoresOfAttackGuards.OrderByDescending(x => x.score).Take(3).ToList();
+            lstBestAttackGuards = lstScoresOfAttackGuards.OrderByDescending(x => x.score).Take(1).ToList();
         else if (lstScoresOfPossibleInvokes.Count > 0)
-            lstBestAttackGuards = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(3).ToList();
+            lstBestAttackGuards = lstScoresOfPossibleInvokes.OrderByDescending(x => x.score).Take(1).ToList();
         else
             lstBestAttackGuards = new List<(List<string> actionsAttackGuard, Player meSimu, Player oppSimu, double score)> { (new List<string>(), new Player(meSimu), new Player(oppSimu), 0) };
 
@@ -259,7 +262,7 @@ class ProgramTestTESL
                     foreach ((int idAtt, int idDef) attack in lstAttacks)
                     {
                         Card attacker = meSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idAtt);
-                        Card defender = oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idDef);
+                        Card defender = attack.idDef != -1 ? oppSimu.lstCardsOnBoard.FirstOrDefault(x => x.id == attack.idDef) : new Card() { id = -1, defense = oppSimu.health };
                         AttackOpponentCard(attacker, defender, meSimu, oppSimu, lstActionsAttackNonGuards);
                     }
 
@@ -641,14 +644,6 @@ class ProgramTestTESL
         }
 
         return lstLstPossiblePlaysOfCardSubset;
-    }
-
-    static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
-    {
-        if (length == 1)
-            return list.Select(t => new T[] { t });
-        else
-            return GetPermutations(list, length - 1).SelectMany(t => list.Where(e => !t.Contains(e)), (t1, t2) => t1.Concat(new T[] { t2 }));
     }
 
     static void PrintLine(object toPrint, string title = "")
