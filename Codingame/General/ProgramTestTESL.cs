@@ -115,7 +115,7 @@ class ProgramTestTESL
         return score;
     }
 
-    static void Main(string[] args)
+    static void MainTestTESL(string[] args)
     {
         GetInput();
 

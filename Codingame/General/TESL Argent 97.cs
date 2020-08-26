@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,8 +51,8 @@ class Game
             score += 30 * diffOppNbDrain;
             score += 50 * diffMyNbWard;
 
-            score += 100 * diffMyHealth;
-            score += 150 * diffOppHealth;
+            //score += 100 * diffMyHealth;
+            //score += 150 * diffOppHealth;
 
             /*if (hasOppLostRune)
                 score -= 150;*/
@@ -95,15 +95,15 @@ class Game
             score += 50 * diffOppDefense;
 
             score += 80 * diffMyNbGuard;
-            score += 50 * diffOppNbGuard;
+            //score += 50 * diffOppNbGuard;
             score += 30 * diffMyNbLethal;
-            score += 30 * diffOppNbLethal;
+            //score += 30 * diffOppNbLethal;
             score += 30 * diffMyNbDrain;
-            score += 30 * diffOppNbDrain;
-            score += 50 * diffMyNbWard;
+            //score += 30 * diffOppNbDrain;
+            //score += 50 * diffMyNbWard;
 
-            score += 100 * diffMyHealth;
-            score += 150 * diffOppHealth;
+            //score += 100 * diffMyHealth;
+            //score += 150 * diffOppHealth;
 
             /*if (hasOppLostRune)
                 score -= 150;*/
@@ -163,7 +163,7 @@ class Game
         return score;
     }
 
-    static void MainTESL(string[] args)
+    static void Main(string[] args)
     {
         // game loop
         while (true)
