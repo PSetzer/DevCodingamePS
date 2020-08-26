@@ -10,8 +10,6 @@ class ProgramUtils
     static bool isConsole = false;
     static System.IO.StreamReader file = isConsole ? null : new System.IO.StreamReader("../../input1.txt");
 
-    static List<Point> grid;
-
     static void MainUtils(string[] args)
     {
 
