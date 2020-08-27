@@ -70,15 +70,20 @@ class ProgramGrid
         Console.Error.WriteLine(toPrint?.ToString() ?? "");
     }
 
-    static void PrintList(IEnumerable list, string title = "")
+    static void PrintList(IEnumerable list, bool inline = true, string title = "")
     {
         if (!string.IsNullOrEmpty(title))
             Console.Error.Write($"{title} : ");
         foreach (var item in list)
         {
-            Console.Error.Write($"{item} ");
+            if (inline)
+                Console.Error.Write($"{item} ");
+            else
+                Console.Error.WriteLine($"{item} ");
         }
-        Console.Error.WriteLine();
+
+        if (inline)
+            Console.Error.WriteLine();
     }
 }
 
